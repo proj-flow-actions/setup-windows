@@ -5,8 +5,11 @@ inputs:
   install-occ:
     description: Should this action install OpenCppCoverage
     required: true
+  install-nsis:
+    description: Version of NSIS to install, or false to skip installation
+    required: false
   install-folder:
-    description: The designated install folder
+    description: The designated install folder for OpenCppCoverage
     required: true
     default: C:/Program Files (x86)
 outputs:
@@ -24,6 +27,12 @@ runs:
       run: |
         dotnet tool install --global wix --version 4.0.4
         wix extension add -g WixToolset.UI.wixext/4.0.4
+
+    - name: Install NSIS
+      if: ${{ inputs.install-nsis }}
+      uses: repolevedavaj/install-nsis@v1.2.0
+      with:
+        nsis-version: ${{ inputs.install-nsis }}
 
     - name: Download and install OpenCppCoverage
       if: ${{ inputs.install-occ }}
