@@ -1,0 +1,33 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+      - uses: actions/checkout@v4
+        if: ${{ steps.release.outputs.release_created }}
+
+      - name: Move floating vX and vX.Y tags
+        if: ${{ steps.release.outputs.release_created }}
+        env:
+          MAJOR: v${{ steps.release.outputs.major }}
+          MINOR: v${{ steps.release.outputs.major }}.${{ steps.release.outputs.minor }}
+          SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          git tag -f "$MAJOR" "$SHA"
+          git tag -f "$MINOR" "$SHA"
+          git push -f origin "refs/tags/$MAJOR" "refs/tags/$MINOR"
