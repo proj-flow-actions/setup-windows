@@ -12,7 +12,7 @@ Prepare C++ tools specific for Windows
 ## Example usage
 
 ```yaml
-uses: proj-flow-actions/setup-windows@v1.1
+uses: proj-flow-actions/setup-windows@v1
 with:
   install-nsis: '3.10'
 ```

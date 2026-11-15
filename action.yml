@@ -15,6 +15,7 @@ inputs:
 outputs:
   occ-exe-path:
     description: The path to the OpenCppCoverage tool
+    value: ${{ steps.export_path.outputs.occ-exe-path }}
 
 runs:
   using: composite
@@ -29,13 +30,13 @@ runs:
         wix extension add -g WixToolset.UI.wixext/4.0.4
 
     - name: Install NSIS
-      if: ${{ inputs.install-nsis }}
+      if: ${{ inputs.install-nsis != '' && inputs.install-nsis != 'false' }}
       uses: repolevedavaj/install-nsis@v1.2.0
       with:
         nsis-version: ${{ inputs.install-nsis }}
 
     - name: Download and install OpenCppCoverage
-      if: ${{ inputs.install-occ }}
+      if: ${{ fromJson(inputs.install-occ) }}
       shell: bash
       run: |
         curl -s -L -o "${{ inputs.install-folder }}/OpenCppCoverage.tar.gz" https://github.com/proj-flow-actions/setup-windows/releases/download/occ/OpenCppCoverage.tar.gz
@@ -45,18 +46,21 @@ runs:
 
     - name: Locate executable
       id: check_files
+      if: ${{ fromJson(inputs.install-occ) }}
       uses: andstor/file-existence-action@v3
       with:
         files: "${{inputs.install-folder}}/OpenCppCoverage/OpenCppCoverage.exe"
 
     - name: Exec missing
       shell: bash
-      if: steps.check_files.outputs.files_exists == 'false'
+      if: ${{ fromJson(inputs.install-occ) && steps.check_files.outputs.files_exists == 'false' }}
       run: |
         echo "OpenCppCoverage executable is missing"
         exit -1
 
     - name: Export path
+      id: export_path
+      if: ${{ fromJson(inputs.install-occ) }}
       shell: bash
       env:
         INPUT_FOLDER: ${{ inputs.install-folder }}
